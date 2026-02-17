@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Plus, Trash2, Activity, Moon, Sun, Settings, Info, Download, Upload, CircleHelp, Check, Keyboard, MousePointer, Flame, BarChart2 } from 'lucide-react';
+import { Plus, Trash2, Activity, Moon, Sun, Settings, Info, Download, Upload, CircleHelp, Check, MousePointer, Flame, BarChart2, GripVertical } from 'lucide-react';
 import { Habit } from '../types';
 import { clsx } from 'clsx';
 import { format } from 'date-fns';
@@ -12,6 +12,7 @@ interface SidebarProps {
   onSelectHabit: (id: string) => void;
   onAddHabit: (habit: Omit<Habit, 'id' | 'completedDates' | 'createdAt'>) => void;
   onDeleteHabit: (id: string) => void;
+  onReorderHabits: (habits: Habit[]) => void;
   streaks: { [id: string]: number };
   toggleTheme: () => void;
   isDark: boolean;
@@ -28,6 +29,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectHabit, 
   onAddHabit,
   onDeleteHabit,
+  onReorderHabits,
   streaks,
   toggleTheme,
   isDark,
@@ -38,6 +40,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [isAdding, setIsAdding] = useState(false);
   const [newHabitName, setNewHabitName] = useState('');
   const [activeModal, setActiveModal] = useState<ModalType>(null);
+  
+  // Drag and Drop state
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const colors = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899', '#6366f1'];
@@ -63,6 +70,37 @@ export const Sidebar: React.FC<SidebarProps> = ({
       onImport(file);
       e.target.value = '';
     }
+  };
+
+  // --- Drag and Drop Handlers ---
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    // Make the ghost image transparent or custom if needed, default is usually fine
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault(); // Necessary to allow dropping
+    if (draggedIndex === null || draggedIndex === index) return;
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    setDragOverIndex(null);
+    
+    if (draggedIndex === null || draggedIndex === dropIndex) return;
+
+    const newHabits = [...habits];
+    const [movedItem] = newHabits.splice(draggedIndex, 1);
+    newHabits.splice(dropIndex, 0, movedItem);
+
+    onReorderHabits(newHabits);
+    setDraggedIndex(null);
   };
 
   const getStreakEmoji = (streak: number) => {
@@ -121,17 +159,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
              {isFocused && <div className="text-[10px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-400 font-mono">TAB to Grid</div>}
           </div>
           
-          {habits.map((habit) => {
+          {habits.map((habit, index) => {
               const streak = streaks[habit.id] || 0;
               const isTodayDone = habit.completedDates.includes(todayStr);
               const isActive = habit.id === activeHabitId;
+              const isDragging = draggedIndex === index;
+              const isDragOver = dragOverIndex === index;
 
               return (
                 <div
                   key={habit.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
                   onClick={() => onSelectHabit(habit.id)}
                   className={clsx(
                     "group flex items-center justify-between p-2 rounded-xl cursor-pointer transition-all duration-200 border relative",
+                    // Active State
                     isActive
                       ? [
                           "bg-slate-100 dark:bg-slate-800",
@@ -139,10 +185,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             ? "border-emerald-400 dark:border-emerald-600 ring-1 ring-emerald-400/50 shadow-md scale-[1.02]" 
                             : "border-slate-200 dark:border-slate-700 shadow-sm"
                         ]
-                      : "bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                      : "bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/50",
+                    
+                    // Dragging Styles
+                    isDragging && "opacity-50 dashed border-2 border-slate-300",
+                    isDragOver && !isDragging && "border-t-2 border-emerald-500"
                   )}
                 >
                   <div className="flex items-center gap-3 overflow-hidden flex-1 min-w-0">
+                    {/* Drag Handle */}
+                    <div className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 dark:text-slate-600 dark:hover:text-slate-400 flex-shrink-0">
+                      <GripVertical size={14} />
+                    </div>
+
                     <div className="relative flex-shrink-0">
                       <div 
                           className="w-3 h-3 rounded-full" 
@@ -367,6 +422,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <div className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300">
                   <MousePointer size={16} className="mt-0.5 text-emerald-500" />
                   <span>Klicke auf einen Tag im Kalender, um ihn als "Erledigt" zu markieren.</span>
+                </div>
+                <div className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300">
+                  <GripVertical size={16} className="mt-0.5 text-emerald-500" />
+                  <span>Ziehe die Punkte neben einem Ziel, um die Reihenfolge zu ändern.</span>
                 </div>
               </div>
 

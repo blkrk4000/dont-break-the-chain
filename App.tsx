@@ -179,6 +179,10 @@ export default function App() {
     }
   };
 
+  const handleReorderHabits = (newHabits: Habit[]) => {
+    setHabits(newHabits);
+  };
+
   const handleToggleDate = (dateStr: string) => {
     if (!activeHabit) return;
 
@@ -250,6 +254,7 @@ export default function App() {
             onSelectHabit={handleSidebarSelect}
             onAddHabit={handleAddHabit}
             onDeleteHabit={handleDeleteHabit}
+            onReorderHabits={handleReorderHabits}
             streaks={streaks}
             toggleTheme={handleToggleTheme}
             isDark={isDark}
