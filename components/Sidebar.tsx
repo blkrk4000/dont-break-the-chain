@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Activity, Settings, Info, Download, Upload, CircleHelp, Check, MousePointer, Flame, BarChart2, GripVertical } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Activity, Settings, Info, Download, Upload, CircleHelp, Check, MousePointer, Flame, BarChart2, GripVertical, FileJson } from 'lucide-react';
 import { Habit } from '../types';
 import { format } from 'date-fns';
 import { Modal } from './Modal';
@@ -16,7 +16,9 @@ interface SidebarProps {
   onSelectHabit: (id: string) => void;
   onAddHabit: (habit: Omit<Habit, 'id' | 'completedDates' | 'createdAt'>) => void;
   onDeleteHabit: (id: string) => void;
+  onRenameHabit: (id: string, newName: string) => void;
   onReorderHabits: (habits: Habit[]) => void;
+  onToggleArchive: (id: string) => void;
   streaks: { [id: string]: number };
   toggleTheme: () => void;
   isDark: boolean;
@@ -33,7 +35,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectHabit, 
   onAddHabit,
   onDeleteHabit,
+  onRenameHabit,
   onReorderHabits,
+  onToggleArchive,
   streaks,
   toggleTheme,
   isDark,
@@ -42,8 +46,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isFocused
 }) => {
   const [activeModal, setActiveModal] = useState<ModalType>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const activeHabit = habits.find(h => h.id === activeHabitId);
-  const APP_VERSION = "v0.5.0";
+  const APP_VERSION = "v0.8.1";
 
   const getModalTitle = () => {
     switch (activeModal) {
@@ -52,6 +57,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'help': return <><CircleHelp size={20} className="text-slate-400" /> Hilfe & Shortcuts</>;
       case 'stats': return <><BarChart2 size={20} className="text-slate-400" /> Statistik</>;
       default: return null;
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onImport(file);
+      e.target.value = ''; // Reset input
     }
   };
 
@@ -67,7 +84,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onSelectHabit={onSelectHabit}
           onAddHabit={onAddHabit}
           onDeleteHabit={onDeleteHabit}
+          onRenameHabit={onRenameHabit}
           onReorderHabits={onReorderHabits}
+          onToggleArchive={onToggleArchive}
           streaks={streaks}
           isFocused={isFocused}
         />
@@ -77,7 +96,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           setActiveModal={setActiveModal}
           isDark={isDark}
           toggleTheme={toggleTheme}
-          onImport={onImport}
         />
       </div>
 
@@ -143,18 +161,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
 
           {activeModal === 'settings' && (
-            <div className="space-y-4">
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Verwalte deine App-Daten. Du kannst deine Ziele exportieren, um ein Backup zu erstellen, oder sie auf einem anderen Gerät importieren.
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <button onClick={onExport} className="flex items-center justify-center gap-2 p-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-sm font-medium transition-colors">
-                  <Download size={16} /> Backup erstellen
-                </button>
-                {/* Note: Import button logic is now handled in Footer, but for settings menu we might want it duplicated or handled via ref from Footer if needed. 
-                    However, keeping the main actions in footer. If you want it here too, we'd need to expose the file input trigger. 
-                    For now, let's keep the UI simple as the footer has the buttons.
-                */}
+            <div className="space-y-6">
+              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700">
+                <div className="flex items-center gap-3 mb-2">
+                   <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-lg">
+                      <FileJson size={20} />
+                   </div>
+                   <div>
+                      <h4 className="font-bold text-slate-900 dark:text-white text-sm">Datenverwaltung</h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Exportiere deine Fortschritte oder stelle ein Backup wieder her.</p>
+                   </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <button onClick={onExport} className="flex flex-col items-center justify-center gap-2 p-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm font-medium transition-all hover:shadow-md group">
+                    <Download size={24} className="text-slate-400 group-hover:text-emerald-500 transition-colors" /> 
+                    <span>Backup speichern</span>
+                  </button>
+                  
+                  <button onClick={handleImportClick} className="flex flex-col items-center justify-center gap-2 p-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm font-medium transition-all hover:shadow-md group">
+                    <Upload size={24} className="text-slate-400 group-hover:text-blue-500 transition-colors" /> 
+                    <span>Backup laden</span>
+                  </button>
+                  
+                  {/* Hidden Input for Import */}
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleFileChange} 
+                    className="hidden" 
+                    accept="application/json" 
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -202,6 +240,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <GripVertical size={16} className="mt-0.5 text-emerald-500" />
                   <span>Ziehe die Punkte neben einem Ziel, um die Reihenfolge zu ändern.</span>
                 </div>
+                <div className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300">
+                   <div className="mt-1 w-4 h-4 rounded bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[10px] text-slate-500">Aa</div>
+                   <span>Doppelklick auf den Namen oder Klick auf den Stift, um ein Ziel umzubenennen.</span>
+                </div>
               </div>
 
               <div className="space-y-2 pt-2">
@@ -227,7 +269,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-slate-600 dark:text-slate-400">Tag umschalten</span>
-                    <kbd className="px-2 py-1 bg-white dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 text-xs font-mono">Space / Enter</kbd>
+                    <kbd className="px-2 py-1 bg-white dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 text-xs font-mono">Space</kbd>
                   </div>
                 </div>
               </div>

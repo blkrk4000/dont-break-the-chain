@@ -78,7 +78,6 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                 handled = true;
                 break;
             case ' ':
-            case 'Enter':
                 e.preventDefault();
                 onToggleDate(format(focusedDate, 'yyyy-MM-dd'));
                 return;
@@ -155,7 +154,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
         </div>
         
         <div className="flex items-center gap-3">
-            {!isFocused && <div className="hidden md:block text-[10px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-400 font-mono">TAB to Sidebar</div>}
+            {isFocused && <div className="hidden md:block text-[10px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-400 font-mono">TAB to Sidebar</div>}
             
             {/* View Switcher */}
             <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700">

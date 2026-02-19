@@ -12,8 +12,11 @@ export default function App() {
     return saved ? JSON.parse(saved) : DEFAULT_HABITS;
   });
   
+  // Clean up activeHabitId if the selected habit is archived or doesn't exist
   const [activeHabitId, setActiveHabitId] = useState<string>(() => {
-    return habits.length > 0 ? habits[0].id : '';
+    if (habits.length === 0) return '';
+    const active = habits.find(h => !h.archived);
+    return active ? active.id : habits[0].id;
   });
 
   const [currentDate, setCurrentDate] = useState(() => {
@@ -77,33 +80,26 @@ export default function App() {
 
       // Navigation Logic depends on Focus Mode
       if (focusMode === 'sidebar') {
+          // Get only visible habits (not archived) for navigation
+          const visibleHabits = habits.filter(h => !h.archived);
+          
           if (e.key === 'ArrowUp') {
              e.preventDefault();
-             setHabits(currentHabits => {
-               const idx = currentHabits.findIndex(h => h.id === activeHabitId);
-               if (idx > 0) setActiveHabitId(currentHabits[idx - 1].id);
-               return currentHabits;
-             });
+             if (visibleHabits.length === 0) return;
+             
+             const idx = visibleHabits.findIndex(h => h.id === activeHabitId);
+             if (idx > 0) setActiveHabitId(visibleHabits[idx - 1].id);
           }
           if (e.key === 'ArrowDown') {
              e.preventDefault();
-             setHabits(currentHabits => {
-               const idx = currentHabits.findIndex(h => h.id === activeHabitId);
-               if (idx < currentHabits.length - 1) setActiveHabitId(currentHabits[idx + 1].id);
-               return currentHabits;
-             });
+             if (visibleHabits.length === 0) return;
+
+             const idx = visibleHabits.findIndex(h => h.id === activeHabitId);
+             if (idx < visibleHabits.length - 1) setActiveHabitId(visibleHabits[idx + 1].id);
           }
           // Space to toggle TODAY on the active habit
           if (e.key === ' ') {
             e.preventDefault();
-            // We need to access the latest activeHabitId here. 
-            // Since we are inside useEffect with deps, we can use the state directly if added to deps,
-            // or use the function passed to handlers. But here we call a handler.
-            // Let's use the local helper logic here.
-            
-            // Note: We can't easily call handleToggleDate directly because it relies on closure state 'activeHabit' 
-            // which might be stale if we don't handle deps correctly. 
-            // However, activeHabitId is in the dependency array.
             const todayStr = format(new Date(), 'yyyy-MM-dd');
             
             setHabits(currentHabits => {
@@ -123,31 +119,29 @@ export default function App() {
       
       // Fallback: Global Ctrl+Arrow navigation (always works regardless of focus)
       if (e.ctrlKey || e.metaKey) {
+        const visibleHabits = habits.filter(h => !h.archived);
+        
         if (e.key === 'ArrowUp') {
            e.preventDefault();
-           setHabits(currentHabits => {
-             const idx = currentHabits.findIndex(h => h.id === activeHabitId);
-             if (idx > 0) setActiveHabitId(currentHabits[idx - 1].id);
-             return currentHabits;
-           });
+           if (visibleHabits.length === 0) return;
+           const idx = visibleHabits.findIndex(h => h.id === activeHabitId);
+           if (idx > 0) setActiveHabitId(visibleHabits[idx - 1].id);
         }
         if (e.key === 'ArrowDown') {
            e.preventDefault();
-           setHabits(currentHabits => {
-             const idx = currentHabits.findIndex(h => h.id === activeHabitId);
-             if (idx < currentHabits.length - 1) setActiveHabitId(currentHabits[idx + 1].id);
-             return currentHabits;
-           });
+           if (visibleHabits.length === 0) return;
+           const idx = visibleHabits.findIndex(h => h.id === activeHabitId);
+           if (idx < visibleHabits.length - 1) setActiveHabitId(visibleHabits[idx + 1].id);
         }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeHabitId, focusMode, isSidebarOpen]); 
+  }, [activeHabitId, focusMode, isSidebarOpen, habits]); 
 
   // --- Helpers ---
   const activeHabit = useMemo(() => 
-    habits.find(h => h.id === activeHabitId) || habits[0]
+    habits.find(h => h.id === activeHabitId) || habits.find(h => !h.archived) || habits[0]
   , [habits, activeHabitId]);
 
   const streaks = useMemo(() => {
@@ -164,19 +158,40 @@ export default function App() {
       ...newHabitData,
       id: crypto.randomUUID(),
       completedDates: [],
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      archived: false
     };
-    setHabits([...habits, newHabit]);
+    setHabits(prev => [...prev, newHabit]);
     setActiveHabitId(newHabit.id);
   };
 
   const handleDeleteHabit = (id: string) => {
-    if (!confirm('Wirklich löschen?')) return;
+    if (!confirm('Wirklich endgültig löschen?')) return;
     const newHabits = habits.filter(h => h.id !== id);
     setHabits(newHabits);
-    if (activeHabitId === id && newHabits.length > 0) {
-      setActiveHabitId(newHabits[0].id);
+    
+    // If we deleted the active habit, switch to another
+    if (activeHabitId === id) {
+      const next = newHabits.find(h => !h.archived);
+      if (next) setActiveHabitId(next.id);
     }
+  };
+
+  const handleToggleArchive = (id: string) => {
+    setHabits(prev => prev.map(h => 
+       h.id === id ? { ...h, archived: !h.archived } : h
+    ));
+    
+    // If the currently active habit was just archived, switch to a non-archived one
+    const targetHabit = habits.find(h => h.id === id);
+    if (targetHabit && !targetHabit.archived && activeHabitId === id) {
+        const next = habits.find(h => h.id !== id && !h.archived);
+        if (next) setActiveHabitId(next.id);
+    }
+  };
+
+  const handleRenameHabit = (id: string, newName: string) => {
+    setHabits(habits.map(h => h.id === id ? { ...h, name: newName } : h));
   };
 
   const handleReorderHabits = (newHabits: Habit[]) => {
@@ -205,7 +220,7 @@ export default function App() {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(habits));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", `seinfeld_habits_${new Date().toISOString().slice(0,10)}.json`);
+    downloadAnchorNode.setAttribute("download", `seinfeld_chain_tracker_${new Date().toISOString().slice(0,10)}.json`);
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
@@ -219,9 +234,15 @@ export default function App() {
         if (typeof result === 'string') {
           const parsed = JSON.parse(result);
           if (Array.isArray(parsed) && parsed.every(h => h.id && h.name && Array.isArray(h.completedDates))) {
-             setHabits(parsed);
-             if (parsed.length > 0) setActiveHabitId(parsed[0].id);
-             alert('Daten erfolgreich importiert!');
+             if (confirm('Dadurch werden alle aktuellen Ziele überschrieben. Fortfahren?')) {
+                setHabits(parsed);
+                // Try to find a valid active ID
+                const firstActive = parsed.find((h: Habit) => !h.archived);
+                if (firstActive) setActiveHabitId(firstActive.id);
+                else if (parsed.length > 0) setActiveHabitId(parsed[0].id);
+                
+                alert('Daten erfolgreich importiert!');
+             }
           } else {
              alert('Ungültiges Dateiformat.');
           }
@@ -254,7 +275,9 @@ export default function App() {
             onSelectHabit={handleSidebarSelect}
             onAddHabit={handleAddHabit}
             onDeleteHabit={handleDeleteHabit}
+            onRenameHabit={handleRenameHabit}
             onReorderHabits={handleReorderHabits}
+            onToggleArchive={handleToggleArchive}
             streaks={streaks}
             toggleTheme={handleToggleTheme}
             isDark={isDark}
@@ -282,7 +305,15 @@ export default function App() {
           />
         ) : (
           <div className="flex-1 flex items-center justify-center text-slate-400">
-            Erstelle ein Ziel, um zu beginnen.
+            <div className="text-center">
+              <p className="mb-2">Kein Ziel ausgewählt.</p>
+              <button 
+                 onClick={() => setSidebarOpen(true)}
+                 className="text-sm text-emerald-500 hover:underline"
+              >
+                 Erstelle ein neues Ziel
+              </button>
+            </div>
           </div>
         )}
       </div>

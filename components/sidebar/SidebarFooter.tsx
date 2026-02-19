@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { Settings, BarChart2, Moon, Sun, CircleHelp, Info } from 'lucide-react';
 import { clsx } from 'clsx';
 import { ModalType } from '../Sidebar';
@@ -8,25 +8,14 @@ interface SidebarFooterProps {
   setActiveModal: (modal: ModalType) => void;
   isDark: boolean;
   toggleTheme: () => void;
-  onImport: (file: File) => void;
 }
 
 export const SidebarFooter: React.FC<SidebarFooterProps> = ({
   activeModal,
   setActiveModal,
   isDark,
-  toggleTheme,
-  onImport
+  toggleTheme
 }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      onImport(file);
-      e.target.value = '';
-    }
-  };
 
   const IconButton = ({ icon: Icon, onClick, title, active }: { icon: any, onClick: () => void, title: string, active?: boolean }) => (
     <button 
@@ -51,7 +40,6 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
           <IconButton icon={Info} onClick={() => setActiveModal('info')} title="Über die Methode" active={activeModal === 'info'} />
           <div className="w-px h-4 bg-slate-300 dark:bg-slate-700 mx-1"></div>
           <IconButton icon={isDark ? Sun : Moon} onClick={toggleTheme} title={isDark ? "Light Mode" : "Dark Mode"} />
-          <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="application/json" />
           <IconButton icon={CircleHelp} onClick={() => setActiveModal('help')} title="Hilfe" active={activeModal === 'help'} />
        </div>
     </div>
