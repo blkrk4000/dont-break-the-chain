@@ -2,9 +2,11 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Jerry Seinfeld's Don't Break The Chain</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#10b981" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -12,11 +14,22 @@
         theme: {
           extend: {
             colors: {
-              border: "hsl(var(--border))",
-              input: "hsl(var(--input))",
-              ring: "hsl(var(--ring))",
-              background: "hsl(var(--background))",
-              foreground: "hsl(var(--foreground))",
+              // Override 'white' to allow theming of card backgrounds
+              white: 'rgb(var(--color-white) / <alpha-value>)',
+              // Override 'slate' to use our CSS variables
+              slate: {
+                50: 'rgb(var(--color-slate-50) / <alpha-value>)',
+                100: 'rgb(var(--color-slate-100) / <alpha-value>)',
+                200: 'rgb(var(--color-slate-200) / <alpha-value>)',
+                300: 'rgb(var(--color-slate-300) / <alpha-value>)',
+                400: 'rgb(var(--color-slate-400) / <alpha-value>)',
+                500: 'rgb(var(--color-slate-500) / <alpha-value>)',
+                600: 'rgb(var(--color-slate-600) / <alpha-value>)',
+                700: 'rgb(var(--color-slate-700) / <alpha-value>)',
+                800: 'rgb(var(--color-slate-800) / <alpha-value>)',
+                900: 'rgb(var(--color-slate-900) / <alpha-value>)',
+                950: 'rgb(var(--color-slate-950) / <alpha-value>)',
+              },
             },
             animation: {
               'fade-in': 'fadeIn 0.3s ease-out',
@@ -39,10 +52,63 @@
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
       
+      /* --- THEME DEFINITIONS --- */
+      
+      /* 1. Default (Cool Slate) */
+      :root {
+        --color-white: 255 255 255;
+        --color-slate-50: 248 250 252;
+        --color-slate-100: 241 245 249;
+        --color-slate-200: 226 232 240;
+        --color-slate-300: 203 213 225;
+        --color-slate-400: 148 163 184;
+        --color-slate-500: 100 116 139;
+        --color-slate-600: 71 85 105;
+        --color-slate-700: 51 65 85;
+        --color-slate-800: 30 41 59;
+        --color-slate-900: 15 23 42;
+        --color-slate-950: 2 6 23;
+      }
+
+      /* 2. Gruvbox (Warm Retro) */
+      /* Light Mode: Creamy background, Dark Mode: Deep Brown */
+      [data-theme="gruvbox"] {
+        --color-white: 251 241 199;     /* bg0 (Cream) - Used for Cards in Light Mode */
+        --color-slate-50: 242 229 188;  /* bg0_s (Darker Cream) - Used for App BG in Light Mode */
+        --color-slate-100: 235 219 178; /* bg1 */
+        --color-slate-200: 213 196 161; /* bg2 */
+        --color-slate-300: 189 174 147; /* bg3 */
+        --color-slate-400: 168 153 132; /* bg4 */
+        --color-slate-500: 146 131 116; /* gray */
+        --color-slate-600: 124 111 100; /* gray */
+        --color-slate-700: 80 73 69;    /* dark gray */
+        --color-slate-800: 60 56 54;    /* bg1 (Dark Mode Card) */
+        --color-slate-900: 40 40 40;    /* bg0 (Dark Mode BG) */
+        --color-slate-950: 29 32 33;    /* bg0_h (Hard Dark Mode) */
+      }
+
+      /* 3. E-Ink (High Contrast / Paper) */
+      [data-theme="eink"] {
+        /* Light Mode: Newsprint style - Grey surfaces everywhere */
+        --color-white: 225 225 225;      /* Card BG: Light Gray (was pure white) */
+        --color-slate-50: 205 205 205;   /* App BG: Medium Gray */
+        --color-slate-100: 190 190 190;  /* Hover: Darker Gray */
+        --color-slate-200: 160 160 160;  /* Borders: Visible Gray */
+        --color-slate-300: 120 120 120;  
+        --color-slate-400: 80 80 80;     
+        --color-slate-500: 60 60 60;     
+        --color-slate-600: 40 40 40;
+        --color-slate-700: 23 23 23;
+        --color-slate-800: 23 23 23;     /* Card BG Dark (Neutral 900) */
+        --color-slate-900: 0 0 0;        /* Text Main (Black) */
+        --color-slate-950: 10 10 10;     /* App BG Dark (Nearly Black) */
+      }
+
       body {
         font-family: 'Inter', sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        overscroll-behavior-y: none;
       }
       
       /* Custom Scrollbar */
@@ -54,14 +120,14 @@
         background: transparent;
       }
       ::-webkit-scrollbar-thumb {
-        background: #cbd5e1; /* slate-300 */
+        background: rgb(var(--color-slate-300));
         border-radius: 3px;
       }
       .dark ::-webkit-scrollbar-thumb {
-        background: #334155; /* slate-700 */
+        background: rgb(var(--color-slate-700));
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8; /* slate-400 */
+        background: rgb(var(--color-slate-400));
       }
       
       body, div, span, button {
@@ -91,5 +157,18 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('SW registered: ', registration);
+            })
+            .catch(registrationError => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
   </body>
 </html>

@@ -1,9 +1,15 @@
 import React from 'react';
+import { X } from 'lucide-react';
 
-export const SidebarHeader: React.FC = () => {
+interface SidebarHeaderProps {
+  onDashboardClick: () => void;
+  onClose: () => void;
+}
+
+export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ onDashboardClick, onClose }) => {
   return (
-    <div className="p-6 flex-none border-b border-slate-200/50 dark:border-slate-800/50">
-      <div className="flex items-center gap-3">
+    <div className="p-6 flex-none border-b border-slate-200/50 dark:border-slate-800/50 flex items-center justify-between">
+      <button onClick={onDashboardClick} className="flex items-center gap-3 text-left hover:opacity-80 transition-opacity focus:outline-none flex-1" title="Zum Dashboard">
          {/* Logo with Glow Effect */}
          <div className="relative group shrink-0">
             <div className="absolute -inset-1 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-lg blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
@@ -21,7 +27,18 @@ export const SidebarHeader: React.FC = () => {
               Jerry Seinfeld's
             </span>
          </div>
-      </div>
+      </button>
+
+      {/* Close Button for Mobile */}
+      <button 
+        onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+        }}
+        className="md:hidden p-2 -mr-2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors"
+      >
+        <X size={24} />
+      </button>
     </div>
   );
 };

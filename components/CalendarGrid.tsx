@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { 
   eachDayOfInterval, 
   endOfMonth, 
@@ -14,7 +14,8 @@ import {
 import { de } from 'date-fns/locale';
 import { DayCell } from './DayCell';
 import { Habit } from '../types';
-import { PanelLeft, PanelLeftClose, LayoutGrid, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { PanelLeft, PanelLeftClose, LayoutGrid, Calendar as CalendarIcon, ChevronLeft, ChevronRight, MoreVertical, Archive, Trash2, ArchiveRestore } from 'lucide-react';
+import { clsx } from 'clsx';
 
 interface CalendarGridProps {
   habit: Habit;
@@ -25,6 +26,8 @@ interface CalendarGridProps {
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
   isFocused: boolean;
+  onToggleArchive: () => void;
+  onDelete: () => void;
 }
 
 type ViewMode = 'year' | 'month';
@@ -37,18 +40,38 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   onNextYear,
   isSidebarOpen,
   toggleSidebar,
-  isFocused
+  isFocused,
+  onToggleArchive,
+  onDelete
 }) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const [focusedDate, setFocusedDate] = useState(today);
   const [viewMode, setViewMode] = useState<ViewMode>('year');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Sync focus when current date (year view) changes
   useEffect(() => {
     setFocusedDate(today);
+    setIsMenuOpen(false);
   }, [habit.id]);
+
+  // Click outside to close menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    if (isMenuOpen) {
+        document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
@@ -147,6 +170,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
             </button>
             <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-baseline gap-2">
                 <span>{habit.name}</span>
+                {habit.archived && <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-full uppercase tracking-wider font-bold">Archiviert</span>}
                 <span className="text-slate-400 font-normal text-sm">
                     {viewMode === 'year' ? `/ ${format(currentDate, 'yyyy')}` : `/ ${format(focusedDate, 'MMMM yyyy', { locale: de })}`}
                 </span>
@@ -182,6 +206,47 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                    <ChevronRight size={16} />
                 </button>
             </div>
+
+             {/* Settings Dropdown */}
+             <div className="relative" ref={menuRef}>
+                <button 
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className={clsx(
+                        "p-2 rounded-lg transition-colors",
+                        isMenuOpen 
+                           ? "bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white"
+                           : "text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-300"
+                    )}
+                >
+                    <MoreVertical size={20} />
+                </button>
+                
+                {isMenuOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 p-1 z-50 animate-in fade-in zoom-in-95 duration-200">
+                        <button 
+                            onClick={() => {
+                                onToggleArchive();
+                                setIsMenuOpen(false);
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-left"
+                        >
+                            {habit.archived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
+                            {habit.archived ? 'Wiederherstellen' : 'Archivieren'}
+                        </button>
+                        <div className="h-px bg-slate-100 dark:bg-slate-800 my-1"></div>
+                        <button 
+                            onClick={() => {
+                                setIsMenuOpen(false);
+                                onDelete();
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-left"
+                        >
+                            <Trash2 size={16} />
+                            Löschen
+                        </button>
+                    </div>
+                )}
+             </div>
         </div>
       </div>
 

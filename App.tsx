@@ -1,22 +1,37 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { CalendarGrid } from './components/CalendarGrid';
+import { Dashboard } from './components/Dashboard';
 import { Habit } from './types';
 import { addYears, format } from 'date-fns';
-import { calculateStreakForHabit, DEFAULT_HABITS } from './utils/habitUtils';
+import { PanelLeft } from 'lucide-react';
+import { useHabits } from './hooks/useHabits';
+import { useTheme } from './hooks/useTheme';
 
 export default function App() {
-  // --- State ---
-  const [habits, setHabits] = useState<Habit[]>(() => {
-    const saved = localStorage.getItem('seinfeld-habits');
-    return saved ? JSON.parse(saved) : DEFAULT_HABITS;
-  });
+  // --- Hooks ---
+  const { 
+    habits, 
+    streaks, 
+    addHabit, 
+    deleteHabit, 
+    toggleArchive, 
+    renameHabit, 
+    reorderHabits, 
+    toggleDate, 
+    importHabits, 
+    exportHabits 
+  } = useHabits();
   
-  // Clean up activeHabitId if the selected habit is archived or doesn't exist
-  const [activeHabitId, setActiveHabitId] = useState<string>(() => {
-    if (habits.length === 0) return '';
+  const { isDark, toggleTheme, theme, setTheme } = useTheme();
+
+  // --- UI State ---
+  // activeHabitId is now string | null. Null means "Show Dashboard".
+  const [activeHabitId, setActiveHabitId] = useState<string | null>(() => {
+    if (habits.length === 0) return null;
+    // Default to the first active habit, or null if none
     const active = habits.find(h => !h.archived);
-    return active ? active.id : habits[0].id;
+    return active ? active.id : null;
   });
 
   const [currentDate, setCurrentDate] = useState(() => {
@@ -24,39 +39,31 @@ export default function App() {
     return new Date(now.getFullYear(), now.getMonth(), now.getDate());
   });
   
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('theme') === 'dark' || 
-             (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    }
-    return false;
+  const [isSidebarOpen, setSidebarOpen] = useState(() => {
+     if (typeof window !== 'undefined') {
+       return window.innerWidth >= 768; // Start closed on mobile, open on desktop
+     }
+     return true;
   });
-
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
   
-  // 'calendar' is the default focus so users can immediately check off today
+  // 'calendar' includes dashboard view logic when activeHabitId is null
   const [focusMode, setFocusMode] = useState<'sidebar' | 'calendar'>('calendar');
 
   // --- Effects ---
   useEffect(() => {
-    localStorage.setItem('seinfeld-habits', JSON.stringify(habits));
-  }, [habits]);
-
-  useEffect(() => {
-    const root = window.document.documentElement;
-    if (isDark) {
-      root.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      root.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDark]);
-
-  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore if user is typing in an input field
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      // ESC: Always go to Dashboard (if not already there)
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (activeHabitId !== null) {
+            setActiveHabitId(null);
+            setFocusMode('calendar'); // Focus the dashboard
+        }
         return;
       }
 
@@ -85,183 +92,124 @@ export default function App() {
           
           if (e.key === 'ArrowUp') {
              e.preventDefault();
-             if (visibleHabits.length === 0) return;
+             if (visibleHabits.length === 0) {
+                 setActiveHabitId(null);
+                 return;
+             }
+             
+             if (activeHabitId === null) {
+                // Already at Dashboard (top), do nothing
+                return;
+             }
              
              const idx = visibleHabits.findIndex(h => h.id === activeHabitId);
-             if (idx > 0) setActiveHabitId(visibleHabits[idx - 1].id);
+             if (idx === 0) {
+                 // First habit -> Go up to Dashboard
+                 setActiveHabitId(null);
+             } else if (idx > 0) {
+                 // Middle of list -> Go up
+                 setActiveHabitId(visibleHabits[idx - 1].id);
+             } else {
+                 // Fallback if id not found
+                 setActiveHabitId(null);
+             }
           }
+
           if (e.key === 'ArrowDown') {
              e.preventDefault();
              if (visibleHabits.length === 0) return;
 
-             const idx = visibleHabits.findIndex(h => h.id === activeHabitId);
-             if (idx < visibleHabits.length - 1) setActiveHabitId(visibleHabits[idx + 1].id);
+             if (activeHabitId === null) {
+                // Dashboard -> First habit
+                setActiveHabitId(visibleHabits[0].id);
+             } else {
+                const idx = visibleHabits.findIndex(h => h.id === activeHabitId);
+                // Stop at bottom
+                if (idx < visibleHabits.length - 1) setActiveHabitId(visibleHabits[idx + 1].id);
+             }
           }
-          // Space to toggle TODAY on the active habit
-          if (e.key === ' ') {
+          
+          // Space to toggle TODAY on the active habit (only if single habit selected)
+          if (e.key === ' ' && activeHabitId) {
             e.preventDefault();
             const todayStr = format(new Date(), 'yyyy-MM-dd');
-            
-            setHabits(currentHabits => {
-                return currentHabits.map(h => {
-                    if (h.id === activeHabitId) {
-                         const isCompleted = h.completedDates.includes(todayStr);
-                         const newDates = isCompleted 
-                            ? h.completedDates.filter(d => d !== todayStr)
-                            : [...h.completedDates, todayStr];
-                         return { ...h, completedDates: newDates };
-                    }
-                    return h;
-                });
-            });
+            toggleDate(activeHabitId, todayStr); 
           }
-      }
-      
-      // Fallback: Global Ctrl+Arrow navigation (always works regardless of focus)
-      if (e.ctrlKey || e.metaKey) {
-        const visibleHabits = habits.filter(h => !h.archived);
-        
-        if (e.key === 'ArrowUp') {
-           e.preventDefault();
-           if (visibleHabits.length === 0) return;
-           const idx = visibleHabits.findIndex(h => h.id === activeHabitId);
-           if (idx > 0) setActiveHabitId(visibleHabits[idx - 1].id);
-        }
-        if (e.key === 'ArrowDown') {
-           e.preventDefault();
-           if (visibleHabits.length === 0) return;
-           const idx = visibleHabits.findIndex(h => h.id === activeHabitId);
-           if (idx < visibleHabits.length - 1) setActiveHabitId(visibleHabits[idx + 1].id);
-        }
+          
+          // Enter on Sidebar always focuses the main view
+          if (e.key === 'Enter') {
+             e.preventDefault();
+             setFocusMode('calendar');
+          }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeHabitId, focusMode, isSidebarOpen, habits]); 
+  }, [activeHabitId, focusMode, isSidebarOpen, habits, toggleDate]); 
 
   // --- Helpers ---
   const activeHabit = useMemo(() => 
-    habits.find(h => h.id === activeHabitId) || habits.find(h => !h.archived) || habits[0]
+    habits.find(h => h.id === activeHabitId) || null
   , [habits, activeHabitId]);
-
-  const streaks = useMemo(() => {
-    const result: { [id: string]: number } = {};
-    habits.forEach(h => {
-        result[h.id] = calculateStreakForHabit(h);
-    });
-    return result;
-  }, [habits]);
 
   // --- Handlers ---
   const handleAddHabit = (newHabitData: Omit<Habit, 'id' | 'completedDates' | 'createdAt'>) => {
-    const newHabit: Habit = {
-      ...newHabitData,
-      id: crypto.randomUUID(),
-      completedDates: [],
-      createdAt: new Date().toISOString(),
-      archived: false
-    };
-    setHabits(prev => [...prev, newHabit]);
-    setActiveHabitId(newHabit.id);
+    const id = addHabit(newHabitData);
+    setActiveHabitId(id);
+  };
+  
+  const handleAddHabitFromDashboard = () => {
+    const id = addHabit({ name: 'Neues Ziel', color: '#10b981' });
+    setActiveHabitId(id);
+    setSidebarOpen(true);
   };
 
   const handleDeleteHabit = (id: string) => {
     if (!confirm('Wirklich endgültig löschen?')) return;
-    const newHabits = habits.filter(h => h.id !== id);
-    setHabits(newHabits);
+    deleteHabit(id);
     
-    // If we deleted the active habit, switch to another
     if (activeHabitId === id) {
-      const next = newHabits.find(h => !h.archived);
-      if (next) setActiveHabitId(next.id);
+      const next = habits.filter(h => h.id !== id).find(h => !h.archived);
+      setActiveHabitId(next ? next.id : null);
     }
   };
 
   const handleToggleArchive = (id: string) => {
-    setHabits(prev => prev.map(h => 
-       h.id === id ? { ...h, archived: !h.archived } : h
-    ));
-    
-    // If the currently active habit was just archived, switch to a non-archived one
+    toggleArchive(id);
     const targetHabit = habits.find(h => h.id === id);
     if (targetHabit && !targetHabit.archived && activeHabitId === id) {
-        const next = habits.find(h => h.id !== id && !h.archived);
-        if (next) setActiveHabitId(next.id);
+        setActiveHabitId(null);
     }
-  };
-
-  const handleRenameHabit = (id: string, newName: string) => {
-    setHabits(habits.map(h => h.id === id ? { ...h, name: newName } : h));
-  };
-
-  const handleReorderHabits = (newHabits: Habit[]) => {
-    setHabits(newHabits);
-  };
-
-  const handleToggleDate = (dateStr: string) => {
-    if (!activeHabit) return;
-
-    const isCompleted = activeHabit.completedDates.includes(dateStr);
-    let newDates;
-
-    if (isCompleted) {
-      newDates = activeHabit.completedDates.filter(d => d !== dateStr);
-    } else {
-      newDates = [...activeHabit.completedDates, dateStr];
-    }
-
-    const updatedHabit = { ...activeHabit, completedDates: newDates };
-    setHabits(habits.map(h => h.id === activeHabit.id ? updatedHabit : h));
-  };
-
-  const handleToggleTheme = () => setIsDark(!isDark);
-
-  const handleExport = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(habits));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", `seinfeld_chain_tracker_${new Date().toISOString().slice(0,10)}.json`);
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
   };
 
   const handleImport = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const result = event.target?.result;
-        if (typeof result === 'string') {
-          const parsed = JSON.parse(result);
-          if (Array.isArray(parsed) && parsed.every(h => h.id && h.name && Array.isArray(h.completedDates))) {
-             if (confirm('Dadurch werden alle aktuellen Ziele überschrieben. Fortfahren?')) {
-                setHabits(parsed);
-                // Try to find a valid active ID
-                const firstActive = parsed.find((h: Habit) => !h.archived);
-                if (firstActive) setActiveHabitId(firstActive.id);
-                else if (parsed.length > 0) setActiveHabitId(parsed[0].id);
-                
+    if (confirm('Dadurch werden alle aktuellen Ziele überschrieben. Fortfahren?')) {
+        importHabits(file, (success) => {
+            if (success) {
                 alert('Daten erfolgreich importiert!');
-             }
-          } else {
-             alert('Ungültiges Dateiformat.');
-          }
-        }
-      } catch (e) {
-        alert('Fehler beim Lesen der Datei.');
-      }
-    };
-    reader.readAsText(file);
+                setActiveHabitId(null); // Reset view to dashboard
+            } else {
+                alert('Fehler beim Importieren der Datei.');
+            }
+        });
+    }
   };
 
-  const handleSidebarSelect = (id: string) => {
+  const handleSidebarSelect = (id: string | null) => {
     setActiveHabitId(id);
-    setFocusMode('sidebar'); // Switch focus to sidebar when clicking an item
+    
+    // On mobile, close sidebar after selection and focus content
+    if (window.innerWidth < 768) {
+       setSidebarOpen(false);
+       setFocusMode('calendar'); 
+    } else {
+       setFocusMode('sidebar');
+    }
   };
 
   // --- Render ---
   return (
-    <div className="flex flex-col md:flex-row h-screen w-screen overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+    <div className="flex h-screen w-full overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       
       {/* Sidebar */}
       <div 
@@ -275,45 +223,62 @@ export default function App() {
             onSelectHabit={handleSidebarSelect}
             onAddHabit={handleAddHabit}
             onDeleteHabit={handleDeleteHabit}
-            onRenameHabit={handleRenameHabit}
-            onReorderHabits={handleReorderHabits}
+            onRenameHabit={renameHabit}
+            onReorderHabits={reorderHabits}
             onToggleArchive={handleToggleArchive}
             streaks={streaks}
-            toggleTheme={handleToggleTheme}
+            toggleTheme={toggleTheme}
             isDark={isDark}
-            onExport={handleExport}
+            onExport={exportHabits}
             onImport={handleImport}
             isFocused={focusMode === 'sidebar'}
+            onClose={() => setSidebarOpen(false)}
+            currentTheme={theme}
+            setTheme={setTheme}
          />
       </div>
 
       {/* Main Content Area */}
       <div 
-        className="flex-1 flex flex-col h-full overflow-hidden relative"
-        onClick={() => setFocusMode('calendar')} // Click on main area gives it focus
+        className="flex-1 min-w-0 flex flex-col h-full overflow-hidden relative"
+        onClick={() => setFocusMode('calendar')} // Click to focus
       >
         {activeHabit ? (
           <CalendarGrid 
             habit={activeHabit}
-            onToggleDate={handleToggleDate}
+            onToggleDate={(dateStr) => toggleDate(activeHabit.id, dateStr)}
             currentDate={currentDate}
             onPrevYear={() => setCurrentDate(addYears(currentDate, -1))}
             onNextYear={() => setCurrentDate(addYears(currentDate, 1))}
             isSidebarOpen={isSidebarOpen}
             toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
             isFocused={focusMode === 'calendar'}
+            onToggleArchive={() => handleToggleArchive(activeHabit.id)}
+            onDelete={() => handleDeleteHabit(activeHabit.id)}
           />
         ) : (
-          <div className="flex-1 flex items-center justify-center text-slate-400">
-            <div className="text-center">
-              <p className="mb-2">Kein Ziel ausgewählt.</p>
-              <button 
-                 onClick={() => setSidebarOpen(true)}
-                 className="text-sm text-emerald-500 hover:underline"
-              >
-                 Erstelle ein neues Ziel
-              </button>
-            </div>
+          <div className="flex-1 flex flex-col h-full overflow-hidden">
+             {/* Simple header for dashboard mobile toggle if sidebar closed */}
+             {!isSidebarOpen && (
+                <div className="flex-none p-4 border-b dark:border-slate-800 flex items-center gap-3">
+                    <button 
+                        onClick={() => setSidebarOpen(true)} 
+                        className="p-2 text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-800 rounded-md transition-colors"
+                    >
+                        <PanelLeft size={20} />
+                    </button>
+                    <span className="font-bold text-lg">Dashboard</span>
+                </div>
+             )}
+             <Dashboard 
+                habits={habits}
+                onSelectHabit={handleSidebarSelect}
+                onToggleDate={toggleDate}
+                onAddHabit={handleAddHabitFromDashboard}
+                isFocused={focusMode === 'calendar'}
+                onToggleArchive={handleToggleArchive}
+                onDelete={handleDeleteHabit}
+             />
           </div>
         )}
       </div>

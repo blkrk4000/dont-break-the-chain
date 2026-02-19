@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Activity, Settings, Info, Download, Upload, CircleHelp, Check, MousePointer, Flame, BarChart2, GripVertical, FileJson } from 'lucide-react';
-import { Habit } from '../types';
+import { Habit, ThemeOption } from '../types';
 import { format } from 'date-fns';
 import { Modal } from './Modal';
 import { calculateCompletionRate } from '../utils/habitUtils';
@@ -12,8 +12,8 @@ import { SidebarFooter } from './sidebar/SidebarFooter';
 
 interface SidebarProps {
   habits: Habit[];
-  activeHabitId: string;
-  onSelectHabit: (id: string) => void;
+  activeHabitId: string | null;
+  onSelectHabit: (id: string | null) => void;
   onAddHabit: (habit: Omit<Habit, 'id' | 'completedDates' | 'createdAt'>) => void;
   onDeleteHabit: (id: string) => void;
   onRenameHabit: (id: string, newName: string) => void;
@@ -25,6 +25,9 @@ interface SidebarProps {
   onExport: () => void;
   onImport: (file: File) => void;
   isFocused: boolean;
+  onClose: () => void;
+  currentTheme: ThemeOption;
+  setTheme: (theme: ThemeOption) => void;
 }
 
 export type ModalType = 'settings' | 'info' | 'help' | 'stats' | null;
@@ -43,12 +46,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isDark,
   onExport,
   onImport,
-  isFocused
+  isFocused,
+  onClose,
+  currentTheme,
+  setTheme
 }) => {
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const activeHabit = habits.find(h => h.id === activeHabitId);
-  const APP_VERSION = "v0.8.1";
+  const APP_VERSION = "v1.0.0";
 
   const getModalTitle = () => {
     switch (activeModal) {
@@ -76,7 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <>
       <div className="w-full h-full bg-slate-50/50 dark:bg-slate-950/50 backdrop-blur-xl text-slate-900 dark:text-slate-100 flex flex-col border-r border-slate-200 dark:border-slate-800 shadow-xl z-20">
         
-        <SidebarHeader />
+        <SidebarHeader onDashboardClick={() => onSelectHabit(null)} onClose={onClose} />
 
         <SidebarHabitList 
           habits={habits}
@@ -96,6 +102,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           setActiveModal={setActiveModal}
           isDark={isDark}
           toggleTheme={toggleTheme}
+          currentTheme={currentTheme}
+          setTheme={setTheme}
         />
       </div>
 
@@ -156,7 +164,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           
           {activeModal === 'stats' && !activeHabit && (
             <div className="text-center text-slate-500 py-8">
-              Bitte wähle ein Ziel aus, um Statistiken zu sehen.
+               <p>Wähle ein Ziel aus oder gehe zum Dashboard.</p>
             </div>
           )}
 
@@ -220,6 +228,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         <span className="font-mono font-medium text-slate-600 dark:text-slate-300">{APP_VERSION}</span>
                     </div>
                     <div className="flex justify-between">
+                        <span>Lizenz</span>
+                        <span className="font-medium text-slate-600 dark:text-slate-300">MIT License</span>
+                    </div>
+                    <div className="flex justify-between">
                         <span>Credits</span>
                         <span className="font-medium text-slate-600 dark:text-slate-300">blkrk4000 & Gemini AI</span>
                     </div>
@@ -271,6 +283,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <span className="text-slate-600 dark:text-slate-400">Tag umschalten</span>
                     <kbd className="px-2 py-1 bg-white dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 text-xs font-mono">Space</kbd>
                   </div>
+                  <div className="flex justify-between items-center text-sm">
+                     <span className="text-slate-600 dark:text-slate-400">Ziel öffnen (Dashboard)</span>
+                     <kbd className="px-2 py-1 bg-white dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 text-xs font-mono">Enter</kbd>
+                   </div>
                 </div>
               </div>
             </div>

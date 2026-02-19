@@ -6,3 +6,5 @@ export interface Habit {
   createdAt: string;
   archived?: boolean;
 }
+
+export type ThemeOption = 'default' | 'gruvbox' | 'eink';
