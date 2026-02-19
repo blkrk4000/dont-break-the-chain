@@ -36,7 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   habits, 
   activeHabitId, 
   onSelectHabit, 
-  onAddHabit,
+  onAddHabit, 
   onDeleteHabit,
   onRenameHabit,
   onReorderHabits,
@@ -176,8 +176,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <FileJson size={20} />
                    </div>
                    <div>
-                      <h4 className="font-bold text-slate-900 dark:text-white text-sm">Datenverwaltung</h4>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">Exportiere deine Fortschritte oder stelle ein Backup wieder her.</p>
+                      <h4 className="font-bold text-slate-900 dark:text-white text-sm">Datensicherung</h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Exportiere deine Daten als Backup oder importiere einen Spielstand.</p>
                    </div>
                 </div>
                 
