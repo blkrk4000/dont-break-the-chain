@@ -128,3 +128,6 @@ dist
 *.njsproj
 *.sln
 *.sw?
+
+# Migrated prompt history
+migrated_prompt_history

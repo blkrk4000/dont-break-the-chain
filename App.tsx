@@ -49,7 +49,13 @@ export default function App() {
   // 'calendar' includes dashboard view logic when activeHabitId is null
   const [focusMode, setFocusMode] = useState<'sidebar' | 'calendar'>('calendar');
 
+  // --- Helpers ---
+  const activeHabit = useMemo(() => 
+    habits.find(h => h.id === activeHabitId) || null
+  , [habits, activeHabitId]);
+
   // --- Effects ---
+  
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore if user is typing in an input field
@@ -146,11 +152,6 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeHabitId, focusMode, isSidebarOpen, habits, toggleDate]); 
-
-  // --- Helpers ---
-  const activeHabit = useMemo(() => 
-    habits.find(h => h.id === activeHabitId) || null
-  , [habits, activeHabitId]);
 
   // --- Handlers ---
   const handleAddHabit = (newHabitData: Omit<Habit, 'id' | 'completedDates' | 'createdAt'>) => {
