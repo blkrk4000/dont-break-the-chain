@@ -1,20 +1,44 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Don't Break The Chain
 
-# Run and deploy your AI Studio app
+Habit-Tracker nach der "Don't break the chain"-Methode: Jahreskalender pro Ziel, Dashboard über alle Ziele, Streaks. Alle Daten bleiben lokal im Browser.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/dcdc8b38-27a5-4b9e-9f43-7a2e2e7bcad4
+- Jahreskalender pro Ziel, Tag per Klick abhaken
+- Dashboard mit allen aktiven Zielen
+- Streak-Anzeige
+- Ziele umbenennen, sortieren, archivieren
+- Export/Import als JSON
+- Themes: Standard, Gruvbox, E-Ink, dazu Dark Mode
+- Installierbar als PWA (Offline-fähig)
+- Tastatursteuerung
 
-## Run Locally
+## Tastenkürzel
 
-**Prerequisites:**  Node.js
+| Taste | Aktion |
+|---|---|
+| Tab | Fokus Sidebar / Kalender |
+| ↑ / ↓ | Ziel wählen (Fokus Sidebar) |
+| Leertaste | Heute abhaken |
+| Enter | Fokus auf Hauptansicht |
+| Esc | Zum Dashboard |
+| Strg/Cmd + Shift + S | Sidebar ein-/ausblenden |
 
+## Lokal starten
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Voraussetzung: Node.js
+
+```
+npm install
+npm run dev      # http://localhost:5200
+```
+
+Produktiv bauen und ausliefern:
+
+```
+npm run prod     # Build + Server auf Port 3001
+```
+
+## Lizenz
+
+MIT, siehe [LICENSE](LICENSE).

@@ -131,3 +131,7 @@ dist
 
 # Migrated prompt history
 migrated_prompt_history
+
+# Lokale Env-Dateien
+.env.local
+.env*.local
