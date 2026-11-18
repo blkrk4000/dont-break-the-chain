@@ -1,11 +1,16 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Habit } from '../types';
-import { calculateStreakForHabit, DEFAULT_HABITS } from '../utils/habitUtils';
+import { calculateStreakForHabit, sanitizeHabits, DEFAULT_HABITS } from '../utils/habitUtils';
 
 export const useHabits = () => {
   const [habits, setHabits] = useState<Habit[]>(() => {
-    const saved = localStorage.getItem('seinfeld-habits');
-    return saved ? JSON.parse(saved) : DEFAULT_HABITS;
+    try {
+      const saved = localStorage.getItem('seinfeld-habits');
+      if (!saved) return DEFAULT_HABITS;
+      return sanitizeHabits(JSON.parse(saved)) ?? DEFAULT_HABITS;
+    } catch {
+      return DEFAULT_HABITS;
+    }
   });
 
   useEffect(() => {
@@ -72,8 +77,9 @@ export const useHabits = () => {
         const result = event.target?.result;
         if (typeof result === 'string') {
           const parsed = JSON.parse(result);
-          if (Array.isArray(parsed) && parsed.every(h => h.id && h.name && Array.isArray(h.completedDates))) {
-             setHabits(parsed);
+          const clean = sanitizeHabits(parsed);
+          if (clean) {
+             setHabits(clean);
              if (callback) callback(true);
           } else {
              if (callback) callback(false);
@@ -90,7 +96,7 @@ export const useHabits = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(habits));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", `seinfeld_chain_tracker_${new Date().toISOString().slice(0,10)}.json`);
+    downloadAnchorNode.setAttribute("download", `dont-break-the-chain_${new Date().toISOString().slice(0,10)}.json`);
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();

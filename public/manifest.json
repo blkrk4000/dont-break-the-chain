@@ -1,7 +1,7 @@
 {
-  "name": "Jerry Seinfeld's ChainTracker",
-  "short_name": "ChainTracker",
-  "description": "Don't Break the Chain Habit Tracker",
+  "name": "Don't Break The Chain",
+  "short_name": "Chain",
+  "description": "Habit-Tracker nach der Don't-Break-the-Chain-Methode",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",

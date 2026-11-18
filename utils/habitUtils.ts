@@ -79,3 +79,28 @@ export const DEFAULT_HABITS: Habit[] = [
     createdAt: new Date().toISOString() 
   },
 ];
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Prüft und bereinigt Ziel-Daten aus localStorage oder Import-Datei.
+ * Gibt null zurück, wenn die Struktur nicht passt.
+ */
+export const sanitizeHabits = (data: unknown): Habit[] | null => {
+  if (!Array.isArray(data)) return null;
+  const result: Habit[] = [];
+  for (const h of data) {
+    if (!h || typeof h !== 'object') return null;
+    const { id, name, color, completedDates, createdAt, archived } = h as Record<string, unknown>;
+    if (typeof id !== 'string' || !id || typeof name !== 'string' || !name || !Array.isArray(completedDates)) return null;
+    result.push({
+      id,
+      name,
+      color: typeof color === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(color) ? color : '#10b981',
+      completedDates: Array.from(new Set(completedDates.filter((d): d is string => typeof d === 'string' && DATE_RE.test(d)))),
+      createdAt: typeof createdAt === 'string' ? createdAt : new Date().toISOString(),
+      archived: archived === true,
+    });
+  }
+  return result;
+};

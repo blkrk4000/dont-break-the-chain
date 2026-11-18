@@ -53,6 +53,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
     if (!isFocused) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+        // Nicht eingreifen, wenn in ein Eingabefeld getippt wird
+        const tag = document.activeElement?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
         // Prevent interfering with global shortcuts
         if (e.ctrlKey || e.metaKey || e.altKey) return;
         

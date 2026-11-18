@@ -1,5 +1,5 @@
 {
-  "name": "chaintracker",
+  "name": "dont-break-the-chain",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -8,8 +8,8 @@
     "build": "vite build",
     "serve": "serve -s dist -l 3001",
     "prod": "npm run build && npm run serve",
-    "dev-pm2": "pm2 start \"npm run prod\" --name \"chaintracker-dev\" --watch --ignore-watch=\"dist node_modules\"",
-    "prod-pm2": "pm2 start \"npm run serve\" --name \"chaintracker\""
+    "dev-pm2": "pm2 start \"npm run prod\" --name \"dont-break-the-chain-dev\" --watch --ignore-watch=\"dist node_modules\"",
+    "prod-pm2": "pm2 start \"npm run serve\" --name \"dont-break-the-chain\""
   },
   "dependencies": {
     "clsx": "^2.1.1",

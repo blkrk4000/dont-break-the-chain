@@ -1,5 +1,5 @@
 {
-  "name": "Jerry Seinfeld's ChainTracker",
-  "description": "A 'Don't Break the Chain' habit tracker inspired by Jerry Seinfeld.",
+  "name": "Don't Break The Chain",
+  "description": "A 'Don't Break the Chain' habit tracker based on the Don't Break the Chain method.",
   "requestFramePermissions": []
 }

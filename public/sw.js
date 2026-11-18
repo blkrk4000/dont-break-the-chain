@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chain-tracker-v3';
+const CACHE_NAME = 'dont-break-the-chain-v4';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

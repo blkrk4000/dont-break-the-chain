@@ -20,12 +20,10 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ onDashboardClick, 
          </div>
          
          <div className="flex flex-col justify-center">
-            <h1 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
-              Chain<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">Tracker</span>
+            <h1 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
+              Don't Break<br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">The Chain</span>
             </h1>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 mt-0.5">
-              Jerry Seinfeld's
-            </span>
          </div>
       </button>
 
