@@ -96,12 +96,12 @@ export const HabitCard: React.FC<HabitCardProps> = ({
              {habit.name}
           </h3>
           <div className="text-xs text-slate-500 mt-1 flex gap-3">
-             <span className="flex items-center gap-1">
+             <span title="Streak: erledigte Tage in Folge (zählt, wenn heute oder gestern erledigt ist)" className="flex items-center gap-1">
                <Flame size={12} className={streak > 0 ? "text-orange-500" : "text-slate-300"} />
                {streak} Tage Streak
              </span>
              <span className="text-slate-300">•</span>
-             <span>{rate}% Jahresquote</span>
+             <span title="Jahresquote: erledigte Tage dieses Jahres geteilt durch die Tage seit dem 1. Januar">{rate}% Jahresquote</span>
           </div>
         </div>
         
@@ -170,7 +170,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({
       </div>
 
       {/* GitHub-style Heatmap */}
-      <div className="mt-auto pt-2 pointer-events-none">
+      <div className="mt-auto pt-2">
          <div className="flex justify-between items-end mb-2">
             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Letzte 3 Monate</div>
          </div>
@@ -187,6 +187,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({
                return (
                   <div 
                     key={dStr}
+                    title={`${format(date, 'dd.MM.yyyy')}${isDone ? ' – erledigt' : ''}`}
                     className={clsx(
                       "w-2.5 h-2.5 rounded-[2px] transition-colors",
                       isDone 

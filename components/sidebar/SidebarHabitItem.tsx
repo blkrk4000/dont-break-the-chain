@@ -107,7 +107,7 @@ export const SidebarHabitItem: React.FC<SidebarHabitItemProps> = ({
         <div className="flex items-center gap-1.5 overflow-hidden flex-1 min-w-0">
             {/* Drag Handle */}
             {view === 'active' && !isEditing && (
-                <div className="absolute left-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing text-slate-300 dark:text-slate-600 hover:text-slate-500">
+                <div title="Ziehen, um die Reihenfolge zu ändern" className="absolute left-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing text-slate-300 dark:text-slate-600 hover:text-slate-500">
                     <GripVertical size={12} />
                 </div>
             )}
@@ -143,7 +143,7 @@ export const SidebarHabitItem: React.FC<SidebarHabitItemProps> = ({
                 
                 {view === 'active' && (
                     <div className="flex items-center gap-2">
-                        <span className={clsx("text-[10px] font-medium flex items-center gap-1 transition-colors", streak > 0 ? "text-slate-500 dark:text-slate-400" : "text-slate-400 dark:text-slate-600")}>
+                        <span title={streak > 0 ? `Streak: ${streak} ${streak === 1 ? 'Tag' : 'Tage'} in Folge` : 'Kein aktiver Streak'} className={clsx("text-[10px] font-medium flex items-center gap-1 transition-colors", streak > 0 ? "text-slate-500 dark:text-slate-400" : "text-slate-400 dark:text-slate-600")}>
                             {getStreakEmoji(streak)}
                             <span>{streak} {streak === 1 ? 'Tag' : 'Tage'}</span>
                         </span>
@@ -197,7 +197,7 @@ export const SidebarHabitItem: React.FC<SidebarHabitItemProps> = ({
             )}
 
             {view === 'active' && isTodayDone && !isEditing && (
-                <div className="flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 ml-1">
+                <div title="Heute erledigt" className="flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 ml-1">
                     <Check size={10} strokeWidth={3} />
                 </div>
             )}

@@ -181,6 +181,7 @@ export const SidebarHabitList: React.FC<SidebarHabitListProps> = ({
                     <button
                         key={c}
                         onClick={() => setSelectedColor(c)}
+                        title="Farbe wählen"
                         className={clsx(
                         "w-4 h-4 rounded-full transition-all duration-300 hover:scale-110",
                         selectedColor === c ? "ring-1 ring-offset-1 ring-slate-400 dark:ring-slate-500 scale-110" : "opacity-60 hover:opacity-100"

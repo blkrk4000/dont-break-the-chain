@@ -33,6 +33,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ onDashboardClick, 
             e.stopPropagation();
             onClose();
         }}
+        title="Seitenleiste schließen"
         className="md:hidden p-2 -mr-2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors"
       >
         <X size={24} />

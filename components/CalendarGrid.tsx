@@ -277,7 +277,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                 {/* Weekday Labels */}
                 <div className="grid grid-cols-7 gap-1 mb-2">
                   {['M', 'D', 'M', 'D', 'F', 'S', 'S'].map((day, i) => (
-                    <div key={i} className={`text-[10px] text-center font-bold ${i >= 5 ? 'text-rose-400' : 'text-slate-300 dark:text-slate-600'}`}>
+                    <div key={i} title={['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'][i]} className={`text-[10px] text-center font-bold ${i >= 5 ? 'text-rose-400' : 'text-slate-300 dark:text-slate-600'}`}>
                       {day}
                     </div>
                   ))}

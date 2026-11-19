@@ -264,6 +264,7 @@ export default function App() {
                 <div className="flex-none p-4 border-b dark:border-slate-800 flex items-center gap-3">
                     <button 
                         onClick={() => setSidebarOpen(true)} 
+                        title="Seitenleiste ausklappen (Strg/Cmd + Shift + S)"
                         className="p-2 text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-800 rounded-md transition-colors"
                     >
                         <PanelLeft size={20} />

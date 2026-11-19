@@ -101,6 +101,7 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Dunkelmodus</span>
                  <button 
                     onClick={toggleTheme}
+                    title={isDark ? 'Zum hellen Modus wechseln' : 'Zum Dunkelmodus wechseln'}
                     className={clsx(
                         "w-10 h-5 rounded-full relative transition-colors duration-300 focus:outline-none",
                         isDark ? "bg-emerald-500" : "bg-slate-300"

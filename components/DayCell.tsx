@@ -49,7 +49,7 @@ export const DayCell: React.FC<DayCellProps> = ({
 
       <div
         onClick={!isFuture ? onClick : undefined}
-        title={format(date, 'P', { locale: de })}
+        title={`${format(date, 'P', { locale: de })}${isCompleted ? ' – erledigt' : isFuture ? '' : ' – noch offen'}`}
         style={isCompleted ? { backgroundColor: color, borderColor: color } : {}}
         className={clsx(
           baseClasses,
