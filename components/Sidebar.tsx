@@ -3,6 +3,7 @@ import { Activity, Settings, Info, Download, Upload, CircleHelp, Check, MousePoi
 import { Habit, ThemeOption } from '../types';
 import { format } from 'date-fns';
 import { Modal } from './Modal';
+import { HelpContent } from './HelpContent';
 import { calculateCompletionRate } from '../utils/habitUtils';
 
 // Sub-Components
@@ -240,57 +241,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           )}
 
-          {activeModal === 'help' && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Maus</h3>
-                <div className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300">
-                  <MousePointer size={16} className="mt-0.5 text-emerald-500" />
-                  <span>Klicke auf einen Tag im Kalender, um ihn als "Erledigt" zu markieren.</span>
-                </div>
-                <div className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300">
-                  <GripVertical size={16} className="mt-0.5 text-emerald-500" />
-                  <span>Ziehe die Punkte neben einem Ziel, um die Reihenfolge zu ändern.</span>
-                </div>
-                <div className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300">
-                   <div className="mt-1 w-4 h-4 rounded bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[10px] text-slate-500">Aa</div>
-                   <span>Doppelklick auf den Namen oder Klick auf den Stift, um ein Ziel umzubenennen.</span>
-                </div>
-              </div>
-
-              <div className="space-y-2 pt-2">
-                <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Tastatur (Power User)</h3>
-                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3 space-y-3">
-                  <div className="flex justify-between items-center text-sm font-semibold">
-                    <span className="text-slate-900 dark:text-white">Bereich wechseln</span>
-                    <kbd className="px-2 py-1 bg-white dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 text-xs font-mono">TAB</kbd>
-                  </div>
-                  <div className="h-px bg-slate-200 dark:bg-slate-700 my-2"></div>
-                  
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-600 dark:text-slate-400">Sidebar umschalten</span>
-                    <kbd className="px-2 py-1 bg-white dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 text-xs font-mono">Ctrl + Shift + S</kbd>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-600 dark:text-slate-400">Ziel wechseln (Wenn Sidebar aktiv)</span>
-                    <kbd className="px-2 py-1 bg-white dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 text-xs font-mono">↑ / ↓</kbd>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-600 dark:text-slate-400">Kalender navigieren</span>
-                    <kbd className="px-2 py-1 bg-white dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 text-xs font-mono">Pfeiltasten</kbd>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-600 dark:text-slate-400">Tag umschalten</span>
-                    <kbd className="px-2 py-1 bg-white dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 text-xs font-mono">Space</kbd>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                     <span className="text-slate-600 dark:text-slate-400">Ziel öffnen (Dashboard)</span>
-                     <kbd className="px-2 py-1 bg-white dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 text-xs font-mono">Enter</kbd>
-                   </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {activeModal === 'help' && <HelpContent />}
       </Modal>
     </>
   );

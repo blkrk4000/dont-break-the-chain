@@ -199,10 +199,10 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
             </div>
 
             <div className="flex space-x-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5">
-                <button onClick={handlePrev} className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-md shadow-sm transition-all text-slate-600 dark:text-slate-300">
+                <button onClick={handlePrev} title={viewMode === 'year' ? 'Vorheriges Jahr' : 'Vorheriger Monat'} className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-md shadow-sm transition-all text-slate-600 dark:text-slate-300">
                    <ChevronLeft size={16} />
                 </button>
-                <button onClick={handleNext} className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-md shadow-sm transition-all text-slate-600 dark:text-slate-300">
+                <button onClick={handleNext} title={viewMode === 'year' ? 'Nächstes Jahr' : 'Nächster Monat'} className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-md shadow-sm transition-all text-slate-600 dark:text-slate-300">
                    <ChevronRight size={16} />
                 </button>
             </div>
@@ -211,6 +211,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
              <div className="relative" ref={menuRef}>
                 <button 
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    title="Menü: archivieren oder löschen"
                     className={clsx(
                         "p-2 rounded-lg transition-colors",
                         isMenuOpen 

@@ -131,6 +131,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({
                       e.stopPropagation();
                       setIsMenuOpen(!isMenuOpen);
                   }}
+                  title="Menü: archivieren oder löschen"
                   className={clsx(
                       "w-8 h-8 rounded-lg flex items-center justify-center transition-all shrink-0 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400",
                       isMenuOpen && "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
