@@ -2,6 +2,8 @@
 
 Habit-Tracker nach der "Don't break the chain"-Methode: Jahreskalender pro Ziel, Dashboard über alle Ziele, Streaks. Alle Daten bleiben lokal im Browser.
 
+**Live:** https://blkrk4000.github.io/dont-break-the-chain/
+
 ## Features
 
 - Jahreskalender pro Ziel, Tag per Klick abhaken

@@ -1,9 +1,9 @@
-const CACHE_NAME = 'dont-break-the-chain-v4';
+const CACHE_NAME = 'dont-break-the-chain-v5';
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/favicon.svg',
+  './',
+  './index.html',
+  './manifest.json',
+  './favicon.svg',
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap'
 ];
@@ -77,7 +77,7 @@ self.addEventListener('fetch', (event) => {
             // Wenn der User offline die Seite neu lädt (z.B. / oder /index.html),
             // aber der genaue Request nicht im Cache ist, geben wir die index.html zurück.
             if (event.request.mode === 'navigate') {
-                return caches.match('/index.html');
+                return caches.match('./index.html');
             }
 
             return null;
